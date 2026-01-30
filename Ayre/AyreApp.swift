@@ -7,10 +7,17 @@
 
 import SwiftUI
 
+let defaultDoc = """
+{
+    "name": "Title",
+    "staves": []
+}
+"""
+
 @main
 struct AyreApp: App {
     var body: some Scene {
-        DocumentGroup(newDocument: AyreDocument()) { file in
+        DocumentGroup(newDocument: try! AyreDocument(text: defaultDoc)) { file in
             ContentView(document: file.$document)
         }
     }

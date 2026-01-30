@@ -8,32 +8,93 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-extension UTType {
-    static var exampleText: UTType {
-        UTType(importedAs: "com.example.plain-text")
+struct Note: Codable & Hashable {
+    var name: String
+    var octave: Int
+    var duration: Int?
+    
+    init(_ name: String, _ octave: Int, duration: Int? = nil) {
+        self.name = name
+        self.octave = octave
+        self.duration = duration
     }
 }
 
-struct AyreDocument: FileDocument {
-    var text: String
+enum MensuralItem: Codable & Hashable {
+    case Chord([Note])
+    case Rest(Int)
+    case Clef(String, Int)
+    case Mensuration(String)
+}
 
-    init(text: String = "Hello, world!") {
-        self.text = text
+struct TabNote: Codable & Hashable {
+    var string: Int
+    var fret: Int
+    var duration: Int
+}
+
+enum TabItem: Codable & Hashable {
+    case Chord([TabNote])
+    case Rest(Int)
+}
+
+struct Bar: Codable & Hashable {
+    var length: Int
+    var items: [TabItem]
+}
+
+struct GridTablature: Codable & Hashable {
+    var LowestCourseOnTop: Bool = false
+    var tuning: [Note]
+    var FretsAsNumbers: Bool
+    var bars: [Bar]
+}
+
+struct GermanTablature: Codable & Hashable {
+    var tuning: [Note]
+    var bars: [Bar]
+}
+
+enum StaffData: Codable & Hashable {
+    case Mensural([MensuralItem])
+    case GridTablature(GridTablature)
+    case GermanTablature(GermanTablature)
+}
+
+struct Staff: Codable & Identifiable & Hashable {
+    var id = UUID()
+    var name: String
+
+    var data: StaffData
+}
+
+struct Score: Codable {
+    var name: String
+    var staves: [Staff]
+}
+
+struct AyreDocument: FileDocument {
+    var score: Score
+
+    init(text: String) throws {
+        let decoder = JSONDecoder()
+        self.score = try decoder.decode(Score.self, from: text.data(using: .utf8)!)
     }
 
-    static var readableContentTypes: [UTType] { [.exampleText] }
+    static var readableContentTypes: [UTType] { [UTType.json] }
 
     init(configuration: ReadConfiguration) throws {
-        guard let data = configuration.file.regularFileContents,
-              let string = String(data: data, encoding: .utf8)
+        guard let data = configuration.file.regularFileContents
         else {
             throw CocoaError(.fileReadCorruptFile)
         }
-        text = string
+        let decodedScore: Score = try JSONDecoder().decode(Score.self, from: data)
+        self.score = decodedScore
     }
     
     func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
-        let data = text.data(using: .utf8)!
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(score)
         return .init(regularFileWithContents: data)
     }
 }
