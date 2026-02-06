@@ -11,35 +11,32 @@ import UniformTypeIdentifiers
 struct Note: Codable & Hashable {
     var name: String
     var octave: Int
-    var duration: Int?
     
-    init(_ name: String, _ octave: Int, duration: Int? = nil) {
+    init(_ name: String, _ octave: Int) {
         self.name = name
         self.octave = octave
-        self.duration = duration
     }
 }
 
 enum MensuralItem: Codable & Hashable {
-    case Chord([Note])
-    case Rest(Int)
-    case Clef(String, Int)
+    case Chord([Note], Double)
+    case Rest(Double)
+    case Clef(String, Double)
     case Mensuration(String)
 }
 
 struct TabNote: Codable & Hashable {
     var string: Int
     var fret: Int
-    var duration: Int
 }
 
 enum TabItem: Codable & Hashable {
-    case Chord([TabNote])
-    case Rest(Int)
+    case Chord([TabNote], Double)
+    case Rest(Double)
 }
 
 struct Bar: Codable & Hashable {
-    var length: Int
+    var length: Double
     var items: [TabItem]
 }
 

@@ -86,9 +86,10 @@ struct ContentView: View {
                     
                 }
             }
-            
+            ScoreView(score: $document.score)
         }
         
+
     }
 }
 
